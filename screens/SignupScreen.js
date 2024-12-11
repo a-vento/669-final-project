@@ -3,7 +3,8 @@ import { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import { Button } from '@rneui/themed';
 import { useDispatch } from 'react-redux';
-import { addUser } from "../features/authSlice";
+import { addUser } from "../data/authSlice";
+import {setUser} from "../data/userSlice";
 import { createUserWithEmailAndPassword, getAuth, onAuthStateChanged, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
 
 function SignupBox({navigation}) {
@@ -71,6 +72,8 @@ function SignupBox({navigation}) {
               const newUser = await signUp(displayName, email, password);
               console.log('about to add', newUser);
               dispatch(addUser(newUser));
+              dispatch(setUser(newUser));
+              navigation.navigate('HomeTabs')
             } catch(error) {
               Alert.alert("Sign Up Error", error.message,[{ text: "OK" }])
             }

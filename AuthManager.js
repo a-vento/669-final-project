@@ -12,6 +12,7 @@ import { getApps, initializeApp } from 'firebase/app';
 import { firebaseConfig } from './Secrets';
 import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 import { subscribeToUserUpdates } from './data/Actions';
+import {setUser} from "./data/userSlice";
 
 
 let app, auth;
@@ -55,13 +56,14 @@ const getAuthUser = () => {
 
 let unsubscribeFromAuthChanges = undefined;
 
-const subscribeToAuthChanges = (navigation) => {
+const subscribeToAuthChanges = (navigation, dispatch) => {
   if (unsubscribeFromAuthChanges) {
     unsubscribeFromAuthChanges();
   }
 
   unsubscribeFromAuthChanges = onAuthStateChanged(auth, (user) => {
     if (user) {
+      dispatch(setUser(user));
       navigation.navigate('HomeTabs');
     } else {
       navigation.navigate('Login');

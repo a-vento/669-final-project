@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { initializeApp, getApps } from 'firebase/app';
 import { firebaseConfig } from '../Secrets';
 import { getAuth, updateProfile } from 'firebase/auth';
-import { ADD_USER, LOAD_USERS, SET_CURRENT_CHAT } from '../data/Reducer';
+import { ADD_USER, LOAD_USERS, SET_CURRENT_CHAT } from './Reducer';
 
 import { setDoc, addDoc, doc, getFirestore, 
   getDocs, collection, query, where, onSnapshot } 
@@ -18,7 +18,6 @@ if (apps.length == 0) {
 const db = getFirestore(app);
 
 let usersSnapshotUnsub = undefined;
-let chatSnapshotUnsub = undefined;
 
 export const subscribeToUserUpdates = () => {
   if (usersSnapshotUnsub) {
@@ -75,6 +74,7 @@ export const updateUserData = createAsyncThunk(
     }
   }
 );
+
 const initialState = {
   users: [],
   user: null,
@@ -104,8 +104,6 @@ const authSlice = createSlice({
     });
   },
 });
-
-
 
 export const addOrSelectChat = createAsyncThunk(
   'chat/addOrSelect',

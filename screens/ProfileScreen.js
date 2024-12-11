@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
 import { useSelector } from 'react-redux';
 
 function ProfileScreen({ route, navigation }) { 
@@ -7,6 +7,7 @@ function ProfileScreen({ route, navigation }) {
   const loops = useSelector(state => state.list?.loops || []); 
   const [averageAmount, setAverageAmount] = useState(0);
   const [totalLoops, setTotalLoops] = useState(0);
+  const [playerNotes, setPlayerNotes] = useState([]); 
 
   useEffect(() => {
     if (loops.length > 0) {
@@ -15,6 +16,7 @@ function ProfileScreen({ route, navigation }) {
       const avgAmount = totalAmount / filteredLoops.length;
 
       setAverageAmount(avgAmount);  
+      setPlayerNotes(filteredLoops.map(loop => loop.notes)); 
     }
   }, [loops, name]);
 
@@ -38,7 +40,26 @@ function ProfileScreen({ route, navigation }) {
         <Text style={styles.title}>{name}'s Profile</Text>
         <Text style={styles.metric}>Average Amount: ${averageAmount.toFixed(2)}</Text>
         <Text style={styles.metric}>Total Rounds: {totalLoops}</Text>
-      </View>
+      
+
+        <View style={styles.notesContainer}>
+          <Text style={styles.notesTitle}>Notes History:</Text>
+          {playerNotes.filter(item => typeof item === 'string' && item.trim() !== "").length > 0 ? (
+            <FlatList
+              data={playerNotes.filter(item => typeof item === 'string' && item.trim() !== "")} 
+              keyExtractor={(item, index) => index.toString()}
+              renderItem={({ item }) => (
+                <View style={styles.noteItem}>
+                  <Text style={styles.noteText}>{item}</Text>
+                </View>
+              )}
+            />
+          ) : (
+            <Text>No notes available for this player.</Text> 
+          )}
+        </View>
+
+    </View>
     </View>
   );
 }
@@ -81,6 +102,22 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     textAlign: 'left', 
     width: "100%",  
+  },
+  notesContainer: {
+    paddingTop: 20,
+    width: '100%',
+  },
+  notesTitle: {
+    fontSize: 18,
+    marginBottom: 10,
+  },
+  noteItem: {
+    padding: 10,
+    marginLeft: 20,
+  },
+  noteText: {
+    fontSize: 16,
+    marginVertical: 5,
   },
 });
 

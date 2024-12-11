@@ -11,20 +11,25 @@ import SignupScreen from './screens/SignupScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
-import listReducer from './features/listSlice';
+import listReducer from './data/listSlice.js';
 import Header from './components/Header.js';
 import IntroScreen from './screens/IntroScreen'; 
 import Entypo from '@expo/vector-icons/Entypo';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { rootReducer } from './data/Reducer';
-import authReducer from './features/authSlice'; 
+import authReducer from './data/authSlice.js'; 
+import CameraScreen from './screens/CameraScreen';
+import userReducer from './data/userSlice';
+import userSlice from "./data/userSlice";
 
 const store = configureStore({
   reducer: {
     list: listReducer,
     reducer: rootReducer, 
     auth: authReducer,
+    userSlice: userReducer,
+    // reducer: {userSlice}
   },
 });
 
@@ -61,13 +66,19 @@ function App() {
             <FontAwesome6 name="list-ul" color={color} size={size} />
           ),
         }} />
+        <Tab.Screen name="Pics" component={CameraScreen} 
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <Entypo name="camera" size={24} color={color} />
+          ),
+        }} />
         <Tab.Screen name="Directory" component={DirectoryScreen} 
         options={{
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="people" color={color} size={size}  />
           ),
         }} />
-        <Tab.Screen name="Announcements" component={AnnouncementsScreen} 
+        <Tab.Screen name="Messages" component={AnnouncementsScreen} 
         options={{
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="notifications" color={color} size={size}/>

@@ -17,10 +17,10 @@ function AnnouncementsScreen({ navigation }) {
   // Thomas thomas@yahoo.com password AD6o2UbKwSPszwrzaiBRZrtYKCZ2
   // console.log(`CURRENT ID: ${currentUserId}`)
   let otherUserId = ""
-  if (currentUserId === "MCgg9rgXKSOAcV5Iqi4JugNtQzu1") {
-    otherUserId = "AD6o2UbKwSPszwrzaiBRZrtYKCZ2"; 
-  } else if (currentUserId === "AD6o2UbKwSPszwrzaiBRZrtYKCZ2") {
-    otherUserId = "MCgg9rgXKSOAcV5Iqi4JugNtQzu1"; 
+  if (currentUserId === "n0FXIUlyaLWtoqr0Bge1tSTftXn1") {
+    otherUserId = "MPd52k1piFVNV4BPukaXehzznEv2"; 
+  } else {
+    otherUserId = "n0FXIUlyaLWtoqr0Bge1tSTftXn1"; 
   }
 
   const [inputText, setInputText] = useState('');
@@ -54,22 +54,22 @@ function AnnouncementsScreen({ navigation }) {
             <Text style={styles.headerText}>Chat with ClubHouse</Text>
           </View>
         </View>
-
         <View style={styles.body}>
-        <ScrollView contentContainerStyle={styles.scrollContainer}>
-          {messages
-            .map((msg, index) => (
-              <View
-                key={index}
-                style={[
-                  styles.messageBubble,
-                  msg.author === currentUserId ? styles.self : styles.other,
-                ]}
-              >
-                <Text style={styles.messageText}>{msg.message}</Text>
-              </View>
-            ))}
-        </ScrollView>
+          <ScrollView 
+            contentContainerStyle={styles.scrollContainer}
+          >
+            {messages.map((msg, index) => (
+                <View
+                  key={index}
+                  style={[
+                    styles.messageBubble,
+                    msg.author === currentUserId ? styles.self : styles.other,
+                  ]}
+                >
+                  <Text style={styles.messageText}>{msg.message}</Text>
+                </View>
+              ))}
+          </ScrollView>
         </View>
 
         <View style={styles.footer}>

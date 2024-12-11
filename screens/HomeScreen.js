@@ -1,14 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, Button, FlatList, TouchableOpacity } from 'react-native';
+import { View, Image, Text, StyleSheet, TextInput, Button, FlatList, TouchableOpacity } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { getLoopsThunk } from '../features/listSlice';
+import { getLoopsThunk } from '../data/listSlice';
+import {subscribeToUserOnSnapshot} from "../data/userSlice";
 import { getAuthUser, signOut } from '../AuthManager';
 import { getFirestore, doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
 import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons';
 import AntDesign from '@expo/vector-icons/AntDesign';
-import { subscribeToUserUpdates } from '../features/authSlice';
+import { subscribeToUserUpdates } from '../data/authSlice';
 
 function HomeScreen({ navigation }) {
+  const currentUser = useSelector(state => state.userSlice.currentUser);
+  const gallery = currentUser.gallery;
+
+
   const dispatch = useDispatch();
   const loops = useSelector(state => state.list?.loops || []);
   const [averageAmount, setAverageAmount] = useState(0);
@@ -24,7 +29,6 @@ function HomeScreen({ navigation }) {
   const [tempName, setTempName] = useState(editedName);
   const [tempRank, setTempRank] = useState(editedRank);
   const [tempCourse, setTempCourse] = useState(editedCourse);
-
   const authUser = getAuthUser();
   const db = getFirestore();
 
@@ -65,6 +69,14 @@ function HomeScreen({ navigation }) {
   }, [authUser, db]);
 
   useEffect(() => {
+    
+    if (authUser?.uid && authUser.uid !== authUser.uid) {
+      authUser.uid = authUser.uid
+      subscribeToUserOnSnapshot(authUser.uid, dispatch)
+    }
+  }, [authUser]);
+
+  useEffect(() => {
     if (isOverlayVisible) {
       setTempName(editedName);
       setTempRank(editedRank);
@@ -76,7 +88,6 @@ function HomeScreen({ navigation }) {
     if (loops.length > 0) {
       const userLoops = loops.filter(loop => loop.userId === authUser.uid); 
       const filteredLoops = userLoops.filter(loop => new Date(loop.date).getFullYear() === year);
-
       const totalAmount = filteredLoops.reduce((sum, loop) => sum + loop.amount, 0);
       const avgAmount = totalAmount / filteredLoops.length || 0;
       setAverageAmount(avgAmount);
@@ -125,6 +136,7 @@ function HomeScreen({ navigation }) {
     try {
       await signOut(auth);
       console.log("User signed out successfully.");
+      navigation.navigate('Intro')
     } catch (error) {
       console.error("Error signing out:", error);
     }
@@ -136,6 +148,25 @@ function HomeScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
+      <View style={styles.listContainer}>
+        <View style={styles.listContainer}>
+          <FlatList
+            data={gallery}
+            keyExtractor={item=>item.uri}
+            renderItem={({item}) => {
+
+              return (
+                <View>
+                  <Image
+                    style={styles.logo}
+                    source={item}
+                  />
+                </View>
+              );
+            }}
+          />
+        </View>
+      </View>
       <View style={styles.profileCard}>
         <Text style={styles.title}>Name: {editedName}</Text>
         <Text style={styles.title}>Rank: {editedRank || 'N/A'}</Text>
@@ -223,7 +254,7 @@ function HomeScreen({ navigation }) {
                 {topFrequentNames.length > 0 ? (
                   topFrequentNames.map(([name, count], index) => (
                     <Text key={index} style={styles.dataListText}>
-                      {name} : {count} loops
+                      {name} : {count} 
                     </Text>
                   ))
                 ) : (
@@ -258,6 +289,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.5,
     position: 'relative',
+    overflow:"scroll",
   },
   title: {
     flexDirection: 'row',
@@ -287,6 +319,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.5,
     elevation: 5,
+    overflow: "scroll",
   },
   listCard: {
     marginTop: 20,
@@ -364,6 +397,17 @@ const styles = StyleSheet.create({
     right: 20,
     bottom: 10,
   },
+  listContainer: {
+    flex: 0.8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%' 
+  },
+  logo: {
+    width: 200,
+    height: 200,
+    resizeMode: 'contain'
+  }
 });
 
 export default HomeScreen;

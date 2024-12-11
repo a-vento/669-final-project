@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { getLoopsThunk } from '../features/listSlice';  
+import { getLoopsThunk } from '../data/listSlice';  
 import { getAuthUser } from '../AuthManager';  
 
 function DirectoryScreen({ navigation }) {

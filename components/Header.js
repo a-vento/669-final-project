@@ -1,25 +1,13 @@
 import React from 'react';
-import { View, Text, Button, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { signOut } from '../AuthManager'; 
 
 const Header = ({ title }) => {
   const navigation = useNavigation();
 
-  const handleLogout = async () => {
-    try {
-      await signOut();
-      navigation.navigate('Intro');
-    } catch (error) {
-      alert("Error logging out: " + error.message);
-    }
-  };
-
   return (
     <View style={styles.headerContainer}>
-      {/* <Button title="Profile" onPress={handleLogout} /> */}
       <Text style={styles.headerTitle}>{title}</Text>
-      {/* <Button title="Logout" onPress={handleLogout} /> */}
     </View>
   );
 };

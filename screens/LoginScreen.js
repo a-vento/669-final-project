@@ -1,11 +1,9 @@
 
 import { useEffect, useState } from 'react';
 import { View, Text, TextInput, StyleSheet, Alert, TouchableOpacity } from 'react-native';
-import { Button } from '@rneui/themed';
 import { useDispatch } from 'react-redux';
 
 import { signIn, signUp, subscribeToAuthChanges } from '../AuthManager';
-import { addUser, subscribeToUserUpdates } from '../data/Actions';
 
 function SigninBox({navigation}) {
 
@@ -68,9 +66,10 @@ function SigninBox({navigation}) {
 function LoginScreen({navigation}) {
 
   const [loginMode, setLoginMode] = useState(true);
+  const dispatch = useDispatch();
 
   useEffect(()=> {
-    subscribeToAuthChanges(navigation);
+    subscribeToAuthChanges(navigation, dispatch);
   }, []);
   
   return (

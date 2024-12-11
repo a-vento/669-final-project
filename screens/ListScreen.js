@@ -1,29 +1,43 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Button, FlatList, TextInput, StyleSheet, TouchableOpacity, Modal } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { addLoopThunk, removeLoopThunk, updateLoopThunk, getLoopsThunk } from '../features/listSlice'; 
+import { addLoopThunk, removeLoopThunk, updateLoopThunk, getLoopsThunk } from '../data/listSlice';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { getAuthUser } from '../AuthManager';
+import Feather from '@expo/vector-icons/Feather';
 
 function ListScreen() {
+  const [initialPlayerName, setInitialPlayerName] = useState('');
+  const [initialLoopAmount, setInitialLoopAmount] = useState('');
+  const [initialLoopDate, setInitialLoopDate] = useState('');
+
   const [playerName, setPlayerName] = useState('');
   const [loopAmount, setLoopAmount] = useState('');
   const [loopDate, setLoopDate] = useState('');
+  const [course, setCourse] = useState('');
+  const [notes, setNotes] = useState('');
+  
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingLoop, setEditingLoop] = useState(null);
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [filterVisible, setFilterVisible] = useState(false);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [amountCondition, setAmountCondition] = useState('greater');
   const [amountValue, setAmountValue] = useState('');
+  
+  const [showMoreInfoModal, setShowMoreInfoModal] = useState(false); 
 
   const loops = useSelector(state => state.list?.loops || []);
   const dispatch = useDispatch();
-  const authUser = getAuthUser(); 
+  const authUser = getAuthUser();
 
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
+    setInitialLoopDate(today); 
     setLoopDate(today);
 
     if (authUser) {
@@ -32,28 +46,68 @@ function ListScreen() {
   }, [authUser, dispatch]);
 
   const handleAddLoop = () => {
-    if (playerName.trim() && loopAmount.trim()) {
-      const amount = parseFloat(loopAmount);  
-      dispatch(addLoopThunk({ name: playerName, amount, date: loopDate, userId: authUser.uid })); 
+    if (initialPlayerName.trim() && initialLoopAmount.trim()) {
+      const amount = parseFloat(initialLoopAmount);
+      dispatch(addLoopThunk({
+        name: initialPlayerName,
+        amount,
+        date: loopDate,
+        userId: authUser.uid,
+        course,
+        notes,
+      }));
+      setInitialPlayerName('');
+      setInitialLoopAmount('');
+      setLoopDate(initialLoopDate); 
+      setCourse('');
+      setNotes('');
+    }
+  };
+
+  const handleUpdateLoop = (loop) => {
+    setEditingLoop(loop);
+    setPlayerName(loop.name);
+    setLoopAmount(loop.amount.toString());
+    setLoopDate(loop.date);
+    setCourse(loop.course);
+    setNotes(loop.notes); 
+    setIsEditing(true);
+  };
+
+  const handleSaveUpdate = () => {
+    if (editingLoop) {
+      const updatedLoop = {
+        ...editingLoop,
+        name: playerName,
+        amount: parseFloat(loopAmount),
+        date: loopDate,
+        course,
+        notes,
+      };
+
+      dispatch(updateLoopThunk(updatedLoop));
+      setIsEditing(false); 
       setPlayerName('');
       setLoopAmount('');
-      setLoopDate(new Date().toISOString().split('T')[0]); 
+      setLoopDate(new Date().toISOString().split('T')[0]);
+      setCourse('');
+      setNotes('');
     }
   };
 
   const handleRemoveLoop = (loop) => {
-    dispatch(removeLoopThunk(loop)); 
+    dispatch(removeLoopThunk(loop));
   };
 
-  const handleUpdateLoop = (id) => {
-
+  const handleMoreInformation = () => {
+    setShowMoreInfoModal(!showMoreInfoModal);
   };
 
   const filteredLoops = loops.filter((loop) => {
     if (loop.userId !== authUser.uid) return false;
 
     const nameMatch = loop.name.toLowerCase().includes(searchQuery.toLowerCase());
-  
+
     let amountMatch = true;
     if (amountValue) {
       const amountConditionMatch = parseFloat(amountValue);
@@ -65,6 +119,7 @@ function ListScreen() {
         amountMatch = loop.amount === amountConditionMatch;
       }
     }
+
     let dateMatch = true;
     if (startDate && new Date(loop.date) < new Date(startDate)) {
       dateMatch = false;
@@ -80,31 +135,33 @@ function ListScreen() {
     <View style={styles.container}>
       <View style={styles.loopInput}>
         <TextInput
-          style={styles.input}
-          value={playerName}
-          onChangeText={setPlayerName}
+          style={styles.dateinput}
+          value={initialPlayerName}
+          onChangeText={setInitialPlayerName}
           placeholder="Player Name"
         />
         <TextInput
           style={styles.input}
-          value={loopAmount}
-          onChangeText={setLoopAmount}
-          placeholder="Payment"
+          value={initialLoopAmount}
+          onChangeText={setInitialLoopAmount}
+          placeholder="Pay"
           keyboardType="numeric"
         />
         <TextInput
-          style={styles.input}
+          style={styles.dateinput}
           placeholder="Date"
           value={loopDate}
-          onChangeText={setLoopDate} 
-          maxLength={10} 
+          onChangeText={setLoopDate}
+          maxLength={10}
         />
+        <TouchableOpacity onPress={handleMoreInformation} style={styles.input}>
+          <Feather name="more-horizontal" size={24} color="black" />
+        </TouchableOpacity>
       </View>
-      <TouchableOpacity
-        onPress={handleAddLoop} 
-        style={styles.addButton} 
-      >
+
+      <TouchableOpacity onPress={handleAddLoop} style={styles.addButton}>
         <Ionicons name="add-circle" size={24} color="black" />
+        <Text>Add Loop</Text>
       </TouchableOpacity>
 
       <Text style={styles.title}>History</Text>
@@ -115,20 +172,15 @@ function ListScreen() {
           onChangeText={setSearchQuery}
           placeholder="Player name"
         />
-        <AntDesign 
-          name="filter" 
-          size={24} 
-          color="black" 
-          onPress={() => setFilterVisible(true)} 
+        <AntDesign
+          name="filter"
+          size={24}
+          color="black"
+          onPress={() => setFilterVisible(true)}
           style={styles.filterIcon}
         />
       </View>
-      <Modal
-        visible={filterVisible}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setFilterVisible(false)}
-      >
+      <Modal visible={filterVisible} animationType="slide" transparent={true}>
         <View style={styles.overlay}>
           <View style={styles.overlayContent}>
             <Text style={styles.overlayTitle}>Filter Loops</Text>
@@ -146,14 +198,13 @@ function ListScreen() {
                 onChangeText={setEndDate}
               />
             </View>
-              <TextInput
-                style={styles.filterInput}
-                placeholder="Amount"
-                value={amountValue}
-                onChangeText={setAmountValue}
-                keyboardType="numeric"
-              />
-            
+            <TextInput
+              style={styles.filterInput}
+              placeholder="Amount"
+              value={amountValue}
+              onChangeText={setAmountValue}
+              keyboardType="numeric"
+            />
             <View style={styles.amountConditions}>
               <TouchableOpacity onPress={() => setAmountCondition('greater')} style={[styles.conditionButton, amountCondition === 'greater' && styles.selectedCondition]}>
                 <Text style={styles.conditionText}>Greater than</Text>
@@ -165,7 +216,6 @@ function ListScreen() {
                 <Text style={styles.conditionText}>Equal to</Text>
               </TouchableOpacity>
             </View>
-            
             <View style={styles.overlayButtons}>
               <Button title="Done" onPress={() => setFilterVisible(false)} />
               <Button title="Clear" onPress={() => {
@@ -184,20 +234,14 @@ function ListScreen() {
           data={filteredLoops}
           renderItem={({ item }) => (
             <View style={styles.listItem}>
-              <Text>{`${new Date(item.date).toLocaleDateString()}`}</Text>
+              <Text>{`${item.date}`}</Text>
               <Text>{item.name}</Text>
               <Text>{`$${item.amount.toFixed(2)}`}</Text>
               <View style={styles.buttons}>
-                <TouchableOpacity
-                  onPress={() => handleRemoveLoop(item)}
-                  style={styles.button} 
-                >
+                <TouchableOpacity onPress={() => handleRemoveLoop(item)} style={styles.button}>
                   <FontAwesome name="trash-o" size={24} color="black" />
                 </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => handleUpdateLoop(item.id)}
-                  style={styles.button} 
-                >
+                <TouchableOpacity onPress={() => handleUpdateLoop(item)} style={styles.button}>
                   <FontAwesome name="pencil-square-o" size={24} color="black" />
                 </TouchableOpacity>
               </View>
@@ -208,6 +252,71 @@ function ListScreen() {
       ) : (
         <Text>No loops available</Text>
       )}
+      <Modal visible={showMoreInfoModal} animationType="slide" transparent={true}>
+        <View style={styles.overlay}>
+          <View style={styles.overlayContent}>
+            <Text style={styles.overlayTitle}>More Information</Text>
+            <TextInput
+              style={styles.editInput}
+              value={course}
+              onChangeText={setCourse}
+              placeholder="Course"
+            />
+            <TextInput
+              style={styles.editInput}
+              value={notes}
+              onChangeText={setNotes}
+              placeholder="Notes"
+            />
+            <View style={styles.overlayButtons}>
+              <Button title="Save" onPress={handleMoreInformation} />
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal visible={isEditing} animationType="slide" transparent={true}>
+        <View style={styles.overlay}>
+          <View style={styles.overlayContent}>
+            <Text style={styles.overlayTitle}>Edit Loop</Text>
+            <TextInput
+              style={styles.editInput}
+              value={playerName}
+              onChangeText={setPlayerName}
+              placeholder="Player Name"
+            />
+            <TextInput
+              style={styles.editInput}
+              value={loopAmount}
+              onChangeText={setLoopAmount}
+              placeholder="Amount"
+              keyboardType="numeric"
+            />
+            <TextInput
+              style={styles.editInput}
+              value={loopDate}
+              onChangeText={setLoopDate}
+              placeholder="Date (YYYY-MM-DD)"
+            />
+            <TextInput
+              style={styles.editInput}
+              value={course}
+              onChangeText={setCourse}
+              placeholder="Course"
+            />
+            <TextInput
+              style={styles.editInput}
+              value={notes}
+              onChangeText={setNotes}
+              placeholder="Notes"
+            />
+            <View style={styles.overlayButtons}>
+              <Button title="Save" onPress={handleSaveUpdate} />
+              <Button title="Cancel" onPress={() => setIsEditing(false)} />
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -226,15 +335,27 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   loopInput: {
-    flexDirection: 'row',  
+    flexDirection: 'row',
     justifyContent: 'center',
-    width: '100%',
+    width: '80%',
   },
   input: {
     padding: 10,
     borderWidth: 1,
     marginVertical: 10,
-    width: '30%',
+    width: '20%',
+  },
+  dateinput: {
+    padding: 10,
+    borderWidth: 1,
+    marginVertical: 10,
+    width: '40%',
+  },
+  editInput: {
+    padding: 10,
+    borderWidth: 1,
+    marginVertical: 10,
+    width: '100%',
   },
   filterInput: {
     padding: 10,
@@ -243,7 +364,7 @@ const styles = StyleSheet.create({
     width: '50%',
   },
   filters: {
-    flexDirection: 'row',  
+    flexDirection: 'row',
     width: '80%',
     justifyContent: 'center',
     alignItems: 'center',
@@ -304,11 +425,6 @@ const styles = StyleSheet.create({
     width: '100%',
     marginTop: 20,
   },
-  filterDates: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-  },
   listItem: {
     fontSize: 16,
     padding: 8,
@@ -321,10 +437,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buttons: {
-    flexDirection: 'row', 
+    flexDirection: 'row',
     justifyContent: 'flex-end',
     alignItems: 'center',
-    gap: 10, 
+    gap: 10,
   },
   addButton: {
     paddingBottom: 50,

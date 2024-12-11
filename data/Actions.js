@@ -4,7 +4,7 @@ import { setDoc, addDoc, doc, getFirestore,
 import { Timestamp } from 'firebase/firestore'; 
 
 import { firebaseConfig } from '../Secrets';
-import { ADD_USER, LOAD_USERS, SET_CURRENT_CHAT } from './Reducer';
+import { LOAD_USERS, SET_CURRENT_CHAT } from './Reducer';
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
@@ -30,6 +30,7 @@ const subscribeToUserUpdates = () => {
     });
   }
 }
+
 
 const addUser = (user) => {
   return async (dispatch) => {
@@ -136,7 +137,7 @@ export const fetchChatMessages = (chatId) => {
         if (messageData.timestamp && messageData.timestamp.toDate) {
           messageData.timestamp = messageData.timestamp.toDate().toISOString(); 
         } else {
-          console.warn("Timestamp is missing or not a Firestore Timestamp:", messageData);
+          console.warn("Error with timestamp:", messageData);
         }
 
         return {
@@ -178,5 +179,5 @@ export {
   addOrSelectChat, 
   addCurrentChatMessage,
   unsubscribeFromChat,
-  unsubscribeFromUsers
+  unsubscribeFromUsers,
 };
